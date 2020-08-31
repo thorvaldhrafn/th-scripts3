@@ -29,9 +29,9 @@ class RestHTTPRequestHandler(BaseHTTPRequestHandler):
         for k in keys_list:
             if k == "domain_list":
                 type_acc = form.getvalue("domain_list")
-                res_out = result_list(type_acc)
-                self.wfile.write(json.dumps({'data': "res_out"}))
-            if k == "check":
+                # self.wfile.write(json.dumps({'data': result_list(type_acc)}))
+                self.wfile.write(json.dumps({'data': b"result_list(type_acc)"}))
+            if k == "check ":
                 output = subprocess.Popen("echo $PATH", shell=True, stdout=subprocess.PIPE)
                 ips = output.communicate()[0].rstrip()
                 self.wfile.write(json.dumps({'data': ips}))
