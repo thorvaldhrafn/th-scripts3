@@ -4,7 +4,7 @@ import cgi
 import json
 import sys
 import subprocess
-from domain_list import result_list
+# from domain_list import result_list
 
 
 class RestHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -28,6 +28,7 @@ class RestHTTPRequestHandler(BaseHTTPRequestHandler):
         keys_list = list(form.keys())
         for k in keys_list:
             if k == "domain_list":
+                from domain_list import result_list
                 type_acc = form.getvalue("domain_list")
                 self.wfile.write(json.dumps({'data': result_list(type_acc)}).encode("utf-8"))
             if k == "check ":
