@@ -31,5 +31,5 @@ for prinfo in psutil.process_iter():
     except (psutil.NoSuchProcess, psutil.AccessDenied, IndexError):
         pass
 
-for key in proc_mem_list.keys():
+for key in list(proc_mem_list.keys()):
     print(key, proc_mem_list[key]['rss'])

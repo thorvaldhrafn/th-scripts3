@@ -56,7 +56,7 @@ def vhost_list(nginxconf_path):
                     for i in tmp_host_list:
                         host_list = host_list + i.split(" ")
     host_list = list(set(host_list))
-    host_list = filter(None, host_list)
+    host_list = [_f for _f in host_list if _f]
     return host_list
 
 

@@ -1,10 +1,10 @@
-from BaseHTTPServer import HTTPServer
-from BaseHTTPServer import BaseHTTPRequestHandler
+from http.server import HTTPServer
+from http.server import BaseHTTPRequestHandler
 import cgi
 import json
 import sys
 import subprocess
-from domain_list import result_list
+from .domain_list import result_list
 
 
 class RestHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -25,7 +25,7 @@ class RestHTTPRequestHandler(BaseHTTPRequestHandler):
         form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD': 'POST', 'CONTENT_TYPE': self.headers['Content-Type']})
         self.send_response(200)
         self.end_headers()
-        keys_list = form.keys()
+        keys_list = list(form.keys())
         for k in keys_list:
             if k == "domain_list":
                 type_acc = form.getvalue("domain_list")
