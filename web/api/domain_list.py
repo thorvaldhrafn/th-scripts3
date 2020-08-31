@@ -63,9 +63,10 @@ def vhost_list(nginxconf_path):
 def serv_ip_list():
     output = subprocess.Popen("hostname --all-ip-addresses", shell=True, stdout=subprocess.PIPE)
     ips = output.communicate()[0].rstrip()
-    print(ips)
+    ips = ips.decode()
     # ips_list1 = ips.strip(' \n')
     ips_list = ips.split(" ")
+    print(ips_list)
     # ips_list = ips.strip(' \n').split(" ")
     return ips_list
 
