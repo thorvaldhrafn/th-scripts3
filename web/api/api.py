@@ -30,7 +30,7 @@ class RestHTTPRequestHandler(BaseHTTPRequestHandler):
             if k == "domain_list":
                 type_acc = form.getvalue("domain_list")
                 # self.wfile.write(json.dumps({'data': result_list(type_acc)}))
-                self.wfile.write(json.dumps({'data': "result_list(type_acc)"}))
+                self.wfile.write(bytes(json.dumps({'data': "result_list(type_acc)"})))
             if k == "check ":
                 output = subprocess.Popen("echo $PATH", shell=True, stdout=subprocess.PIPE)
                 ips = output.communicate()[0].rstrip()
