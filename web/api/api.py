@@ -4,7 +4,7 @@ import cgi
 import json
 import sys
 import subprocess
-from .domain_list import result_list
+from domain_list import result_list
 
 
 class RestHTTPRequestHandler(BaseHTTPRequestHandler):
