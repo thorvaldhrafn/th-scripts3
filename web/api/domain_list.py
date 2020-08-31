@@ -64,10 +64,7 @@ def serv_ip_list():
     output = subprocess.Popen("hostname --all-ip-addresses", shell=True, stdout=subprocess.PIPE)
     ips = output.communicate()[0].rstrip()
     ips = ips.decode()
-    # ips_list1 = ips.strip(' \n')
     ips_list = ips.split(" ")
-    print(ips_list)
-    # ips_list = ips.strip(' \n').split(" ")
     return ips_list
 
 
@@ -96,7 +93,7 @@ def check_vhost(host_list, param):
             for rdata in dns.resolver.query(vhost, "CNAME"):
                 hname = str(rdata).strip('.')
                 if host_list.count(hname):
-                    if aliases.keys().count(hname):
+                    if list(aliases.keys()).count(hname):
                         tmp_lst = aliases.get(hname)
                         tmp_lst.append(vhost)
                     else:
