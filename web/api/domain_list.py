@@ -88,7 +88,7 @@ def check_vhost(host_list, param):
         except dns.exception.DNSException:
             pass
             # print "Unhandled exception"
-    for vhost in domains.keys():
+    for vhost in list(domains.keys()):
         try:
             for rdata in dns.resolver.query(vhost, "CNAME"):
                 hname = str(rdata).strip('.')
