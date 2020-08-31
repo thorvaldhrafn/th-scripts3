@@ -1,0 +1,55 @@
+---
+- hosts: {{ host }}
+  remote_user: centos
+  become: yes
+  tasks:
+    - name: Add EPEL repo
+      yum:
+        name: 'epel-release'
+        state: latest
+      when: ansible_distribution == "CentOS"
+    - name: upgrade all packages (CentOS)
+      yum:
+        name: '*'
+        state: latest
+      when: ansible_distribution == "CentOS"
+    - name: upgrade all packages (Ubuntu/Debian)
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+      when: ansible_distribution != "CentOS"
+    - name: install base soft (CentOS)
+      yum:
+        name: 'python, python-pip, python-virtualenv, git, rsync'
+        state: latest
+      when: ansible_distribution == "CentOS"
+    - name: install base soft (Ubuntu/Deb)
+      apt:
+        name: 'python,python-pip,python-virtualenv,git,rsync'
+        state: latest
+        update_cache: yes
+      when: ansible_distribution != "CentOS"
+    - name: Delete thscripts temp dir (if exist)
+      file:
+        path: /root/thscripts-temp/
+        state: absent
+    - name: Create thscripts temp dir
+      file:
+        path: /root/thscripts-temp/
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+    - name: Upload thscripts
+      git:
+        repo: https://github.com/thorvaldhrafn/th-scripts
+        dest: /root/thscripts-temp/
+    - name: Install all
+      shell: bash install.sh
+      args:
+        chdir: /root/thscripts-temp/
+    - name: Delete thscripts temp dir
+      file:
+        path: /root/thscripts-temp/
+        state: absent
