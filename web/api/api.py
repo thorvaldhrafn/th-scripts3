@@ -17,7 +17,7 @@ class RestHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write("<html><body><h1>Request Received!</h1></body></html>")
+        self.wfile.write("<html><body><h1>Request Received!</h1></body></html>".encode("utf-8"))
         return
 
     def do_POST(self):
