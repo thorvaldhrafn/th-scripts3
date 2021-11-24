@@ -1,0 +1,2 @@
+dnspython==1.16.0
+psutil>=5.4.2
