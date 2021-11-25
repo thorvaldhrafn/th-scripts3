@@ -72,9 +72,11 @@ def check_vhost(host_list, param):
     domains = dict()
     wrong_domains = dict()
     ip_list = serv_ip_list()
+    google_resolver = dns.resolver.Resolver()
+    google_resolver.nameservers = ['8.8.8.8']
     for vhost in host_list:
         try:
-            for rdata in dns.resolver.query(vhost, "A"):
+            for rdata in google_resolver.query(vhost, "A"):
                 host_ip = str(rdata)
                 if ip_list.count(host_ip):
                     domains[vhost] = host_ip
@@ -88,7 +90,7 @@ def check_vhost(host_list, param):
             pass
     for vhost in list(domains.keys()):
         try:
-            for rdata in dns.resolver.query(vhost, "CNAME"):
+            for rdata in google_resolver.query(vhost, "CNAME"):
                 hname = str(rdata).strip('.')
                 if host_list.count(hname):
                     if list(aliases.keys()).count(hname):
