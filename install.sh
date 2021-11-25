@@ -39,6 +39,7 @@ if [[ $install_param == "install" ]]; then
 
   systemctl daemon-reload
   systemctl enable th-api.service
+  systemctl start th-api.service
 fi
 
 systemctl is-active --quiet th-api.service && systemctl restart th-api.service
