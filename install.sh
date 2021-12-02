@@ -56,7 +56,7 @@ if [[ $install_param == "install" || $update_param == "venv_update" ]]; then
 
   cp requirements.txt /usr/local/thscripts/
   su - thscripts -c "\
-  virtualenv --no-site-packages /usr/local/thscripts/.venv/ && \
+  virtualenv /usr/local/thscripts/.venv/ && \
   source /usr/local/thscripts/.venv/bin/activate && \
   pip install -r requirements.txt && \
   deactivate"
