@@ -18,15 +18,14 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
         for j in folder_list[0][2]:
             chk_conf_list.append(folder + j)
     elif os.path.isdir(os.path.dirname(chk_conf)):
-        print("ZZZZZZZZZZZZ")
         folder = os.path.dirname(chk_conf) + "/"
         folder_list = list()
         pattrn = os.path.basename(chk_conf)
         for i in os.walk(folder):
             folder_list.append(i)
-        print(folder_list)
-        for j in fnmatch.filter(folder_list[0][2], pattrn):
-            chk_conf_list.append(folder + j)
+        if len(folder_list) > 0:
+            for j in fnmatch.filter(folder_list[0][2], pattrn):
+                chk_conf_list.append(folder + j)
     else:
         chk_conf_list.append(dname + "/" + chk_conf)
     for cfile in chk_conf_list:
@@ -41,7 +40,6 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
                         file_mask = re.sub(';\n', '', file_mask, count=1)
                         tmp_file_list.append(file_mask)
                         for f in tmp_file_list:
-                            print(f)
                             nginx_inc_grep(f, "/etc/nginx", list_confs)
     return list_confs
 
