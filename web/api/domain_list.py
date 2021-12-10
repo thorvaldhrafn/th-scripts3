@@ -39,8 +39,8 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
                         file_mask = re.sub(';\n', '', file_mask, count=1)
                         tmp_file_list.append(file_mask)
                         for f in tmp_file_list:
+                            print(f)
                             nginx_inc_grep(f, "/etc/nginx", list_confs)
-    print(list_confs)
     return list_confs
 
 
