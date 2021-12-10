@@ -18,6 +18,7 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
         for j in folder_list[0][2]:
             chk_conf_list.append(folder + j)
     elif os.path.isdir(os.path.dirname(chk_conf)):
+        print("ZZZZZZZZZZZZ")
         folder = os.path.dirname(chk_conf) + "/"
         folder_list = list()
         pattrn = os.path.basename(chk_conf)
