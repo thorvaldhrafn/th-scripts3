@@ -29,8 +29,6 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
         chk_conf_list.append(dname + "/" + chk_conf)
     for cfile in chk_conf_list:
         if not list_confs.count(cfile):
-            if os.path.islink(cfile):
-                cfile = os.readlink(cfile)
             list_confs.append(cfile)
             with open(cfile, 'r') as ngnx_file:
                 for line in ngnx_file:
