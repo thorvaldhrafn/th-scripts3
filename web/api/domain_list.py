@@ -24,6 +24,7 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
         pattrn = os.path.basename(chk_conf)
         for i in os.walk(folder):
             folder_list.append(i)
+        print(folder_list)
         for j in fnmatch.filter(folder_list[0][2], pattrn):
             chk_conf_list.append(folder + j)
     else:
