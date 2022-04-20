@@ -48,8 +48,10 @@ if [[ ! -d /usr/local/thscripts/.venv/ ]]; then
     update_param="venv_update"
 fi
 
+cp confs/th-api.service /usr/lib/systemd/system/
+systemctl daemon-reload
+
 if [[ $install_param == "install" || $update_param == "venv_update" ]]; then
-  cp confs/th-api.service /usr/lib/systemd/system/
   chown -R thscripts:thscripts /usr/local/thscripts/
   VIRT_ENV="/usr/local/thscripts/.venv/"; sed -i "s|VIRT_ENV|${VIRT_ENV}|g" /usr/lib/systemd/system/th-api.service
   sed -i "s|SYS_PATH|${PATH}|g" /usr/lib/systemd/system/th-api.service
@@ -62,10 +64,13 @@ if [[ $install_param == "install" || $update_param == "venv_update" ]]; then
   deactivate"
   rm /usr/local/thscripts/requirements.txt
 
-  systemctl daemon-reload
   systemctl enable th-api.service
-  systemctl start th-api.service
 fi
+
+systemctl start th-api.service
+
+cp confs/th-api.service /usr/lib/systemd/system/
+
 
 if [[ $install_param == "update" && $update_param != "venv_update" ]]; then
   cp requirements.txt /usr/local/thscripts/
