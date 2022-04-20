@@ -5,7 +5,9 @@ import subprocess
 import dns.resolver
 
 
-def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
+def nginx_inc_grep(chk_conf, dname="", list_confs=None):
+    if list_confs is None:
+        list_confs = list()
     tmp_file_list = list()
     chk_conf_list = list()
     if os.path.isfile(chk_conf):
@@ -35,8 +37,8 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=list()):
             list_confs.append(cfile)
             with open(cfile, 'r') as ngnx_file:
                 for line in ngnx_file:
-                    if re.match('(\s*|\t*)include.*', line):
-                        file_mask = re.sub('(\s*|\t*)include(\s+|\t+)', '', line, count=1)
+                    if re.match('(\\s*|\t*)include.*', line):
+                        file_mask = re.sub('(\\s*|\t*)include(\\s+|\t+)', '', line, count=1)
                         file_mask = re.sub(';\n', '', file_mask, count=1)
                         tmp_file_list.append(file_mask)
                         for f in tmp_file_list:
@@ -50,8 +52,8 @@ def vhost_list(nginxconf_path):
         tmp_host_list = list()
         with open(fconf, 'r') as fconf_file:
             for line in fconf_file:
-                if re.match('(\s*|\t*)server_name(\s+|\t+)', line):
-                    host_string = re.sub('(\s*|\t*)server_name(\s+|\t+)', '', line, count=1)
+                if re.match('(\\s*|\t*)server_name(\\s+|\t+)', line):
+                    host_string = re.sub('(\\s*|\t*)server_name(\\s+|\t+)', '', line, count=1)
                     host_string = re.sub(';\n', '', host_string, count=1)
                     tmp_host_list.append(host_string)
                     for i in tmp_host_list:
@@ -79,7 +81,7 @@ def check_vhost(host_list, param):
     google_resolver.nameservers = ['8.8.8.8']
     for vhost in host_list:
         try:
-            for rdata in google_resolver.query(vhost, "A"):
+            for rdata in google_resolver.resolve(vhost, "A"):
                 host_ip = str(rdata)
                 if host_ip in ip_list:
                     domains[vhost] = host_ip
@@ -93,7 +95,7 @@ def check_vhost(host_list, param):
             pass
     for vhost in list(domains.keys()):
         try:
-            for rdata in google_resolver.query(vhost, "CNAME"):
+            for rdata in google_resolver.resolve(vhost, "CNAME"):
                 hname = str(rdata).strip('.')
                 if host_list.count(hname):
                     if list(aliases.keys()).count(hname):
