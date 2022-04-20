@@ -1,6 +1,7 @@
 [Unit]
 Description=thscripts web api
 After=network.target
+PartOf=nginx.service
 
 [Service]
 Type=simple
