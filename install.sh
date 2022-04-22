@@ -48,7 +48,7 @@ if [[ ! -d /usr/local/thscripts/.venv/ ]]; then
     update_param="venv_update"
 fi
 
-cp confs/th-api.service /usr/lib/systemd/system/
+cp confs/th-api.service /etc/systemd/system/
 systemctl daemon-reload
 
 if [[ $install_param == "install" || $update_param == "venv_update" ]]; then
