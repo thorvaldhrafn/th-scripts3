@@ -9,8 +9,8 @@ WorkingDirectory=/usr/local/thscripts/web/api/
 Environment="VIRTUAL_ENV=VIRT_ENV"
 Environment="PATH=VIRT_ENVbin:SYS_PATH"
 EnvironmentFile=/usr/local/thscripts/etc/th-api.conf
-ExecStart=/usr/local/thscripts/.venv/bin/python api.py $THAPI_HOST $THAPI_PORT &> $THAPI_LOGS
-ExecReload=kill -HUP $MAINPID
+ExecStart=/usr/local/thscripts/.venv/bin/python api.py $THAPI_HOST $THAPI_PORT
+ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 
 [Install]
