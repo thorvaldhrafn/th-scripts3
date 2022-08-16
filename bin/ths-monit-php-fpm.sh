@@ -8,9 +8,8 @@ THS_PATH="/usr/local/thscripts"
 . ${THS_PATH}/etc/functions.sh
 
 code_check() {
- http_code=$(curl -I -s -S --connect-timeout 40 "${1}" | grep "HTTP/" | awk '{ print $2 }' | cut -c -1)
- if $?; then
-   return $http_code
+ if http_code=$(curl -I -s -S --connect-timeout 40 "${1}" | grep "HTTP/" | awk '{ print $2 }' | cut -c -1; true); then
+   return "$http_code"
  else
    return 000
  fi
@@ -27,14 +26,14 @@ else
 fi
 
 for i in $CHECK_URL; do
-  url_f_check=${i//*;/}
-  url_backnd=${i//;*/}
+  url_f_check=${i//;*/}
+  url_backnd=${i//*;/}
   counter=1
   date=$(date '+%F-%H:%M')
   while True; do
     return_code=$(code_check "$url_f_check")
-    if [ ${return_code} -eq 5 ]; then
-      /bin/systemctl stop ${url_backnd}-fpm.service &>/dev/null
+    if [ "${return_code}" -eq 5 ]; then
+      /bin/systemctl stop "${url_backnd}"-fpm.service &>/dev/null
       sleep 10
       /bin/systemctl start "${url_backnd}"-fpm.service &>/dev/null
       echo "service php-fpm has been restarted on $date at $counter time" >>/root/monit-php-fpm.log
