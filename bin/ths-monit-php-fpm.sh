@@ -30,7 +30,7 @@ for i in $CHECK_URL; do
   url_backnd=${i//*;/}
   counter=1
   date=$(date '+%F-%H:%M')
-  while True; do
+  while true; do
     return_code=$(code_check "$url_f_check")
     if [ "${return_code}" -eq 5 ]; then
       /bin/systemctl stop "${url_backnd}"-fpm.service &>/dev/null
@@ -47,6 +47,7 @@ for i in $CHECK_URL; do
     else
       publ_ip=$(get_publ_ip)
       teleg_alert "$TELEG_URL" "$TELEG_CHAT_ID" "Php backend problems on $publ_ip"
+      break
     fi
   done
 done
