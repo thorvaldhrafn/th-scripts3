@@ -60,5 +60,6 @@ teleg_alert() {
   tg_chat_id=$2
   shift 2
   send_messg="\`\`\`$*\`\`\`"
-  curl -X POST "$tg_url" -H 'Content-Type: application/json' -d "{'chat_id':$tg_chat_id,'text':$send_messg,'parse_mode':'Markdown','type':'pre'}"
+#  curl -X POST "$tg_url" -H 'Content-Type: application/json' -d "{'chat_id':$tg_chat_id,'text':$send_messg,'parse_mode':'Markdown','type':'pre'}"
+  curl -s -X POST "$tg_url" -d chat_id="$tg_chat_id" -d text="$send_messg"
 }
