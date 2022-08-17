@@ -14,7 +14,7 @@ if [[ $(virtualenv  --version >/dev/null 2>&1; echo $?) -ne 0 ]]; then
 fi
 
 mkdir /usr/local/thscripts/ 2>/dev/null
-useradd -s /bin/bash -d /usr/local/thscripts/ -m thscripts
+useradd -s /bin/bash -d /usr/local/thscripts/ -m thscripts 2>/dev/null
 
 if [[ $install_param == "install" ]]; then
   if [[ -d /etc/nginx/ ]]; then
@@ -26,7 +26,7 @@ dir_list="bin etc web"
 
 for i in $dir_list; do
   mkdir /usr/local/thscripts/"${i}" 2>/dev/null
-  rsync -aq --delete --exclude=/usr/local/thscripts/etc/global.config "${i}"/ /usr/local/thscripts/"${i}"/
+  rsync -aq --delete --exclude "/usr/local/thscripts/etc/global.config" "${i}"/ /usr/local/thscripts/"${i}"/
 done
 
 dir_list_full="$dir_list .venv"
