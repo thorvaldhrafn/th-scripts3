@@ -1,2 +1,2 @@
-- global.conf
-- th-api.conf
+- /etc/global.conf
+- /etc/th-api.conf
