@@ -9,9 +9,9 @@ THS_PATH="/usr/local/thscripts"
 
 code_check() {
  if http_code=$(curl -s -o /dev/null -I -w "%{http_code}" --connect-timeout 40 "${1}" | grep "HTTP/" | awk '{ print $2 }' | cut -c -1; true); then
-   return "$http_code"
+   echo "$http_code"
  else
-   return 000
+   echo 000
  fi
 }
 
@@ -38,7 +38,10 @@ for i in $CHECK_URL; do
       /bin/systemctl start "${url_backnd}"-fpm.service &>/dev/null
       echo "service php-fpm has been restarted on $date at $counter time" >>/root/monit-php-fpm.log
     elif [ "${return_code}" -eq 000 ]; then
-      :
+      /bin/systemctl stop "${url_backnd}"-fpm.service &>/dev/null
+      sleep 10
+      /bin/systemctl start "${url_backnd}"-fpm.service &>/dev/null
+      echo "service php-fpm has been restarted on $date at $counter time" >>/root/monit-php-fpm.log
     else
       break
     fi
