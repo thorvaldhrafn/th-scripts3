@@ -8,7 +8,7 @@ THS_PATH="/usr/local/thscripts"
 . ${THS_PATH}/etc/functions.sh
 
 code_check() {
- if http_code=$(curl -s -o /dev/null -I -w "%{http_code}" --connect-timeout 40 "${1}" | cut -c -1; false); then
+ if http_code=$(curl -s -o /dev/null -I -w "%{http_code}" --connect-timeout 40 "${1}" | cut -c -1; true); then
    echo "$http_code"
  else
    echo 000
@@ -17,7 +17,6 @@ code_check() {
 
 if [[ -e /var/lock/monit-php-fpm.lock ]]; then
   PID=$(cat /var/lock/monit-php-fpm.lock)
-#  ps aux | awk '{ print $2 }' | grep "${PID}" >/dev/null
   if ps aux | awk '{ print $2 }' | grep "${PID}"; then
     exit 0
   fi
@@ -32,17 +31,16 @@ for i in $CHECK_URL; do
   date=$(date '+%F-%H:%M')
   while true; do
     return_code=$(code_check "$url_f_check")
-    echo $return_code
     if [ "${return_code}" -eq 5 ]; then
       /bin/systemctl stop "${url_backnd}"-fpm.service &>/dev/null
       sleep 10
       /bin/systemctl start "${url_backnd}"-fpm.service &>/dev/null
-      echo "service php-fpm has been restarted on $date at $counter time" >>/root/monit-php-fpm.log
+      echo "service php-fpm has been restarted on $date at $counter time" >>/var/log/thscr-monit-php-fpm.log
     elif [ "${return_code}" -eq 000 ]; then
       /bin/systemctl stop "${url_backnd}"-fpm.service &>/dev/null
       sleep 10
       /bin/systemctl start "${url_backnd}"-fpm.service &>/dev/null
-      echo "service php-fpm has been restarted on $date at $counter time" >>/root/monit-php-fpm.log
+      echo "service php-fpm has been restarted on $date at $counter time" >>/var/log/thscr-monit-php-fpm.log
     else
       break
     fi
