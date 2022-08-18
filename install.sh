@@ -26,7 +26,7 @@ dir_list="bin etc web"
 
 for i in $dir_list; do
   mkdir /usr/local/thscripts/"${i}" 2>/dev/null
-  rsync -aq --delete --exclude "/usr/local/thscripts/etc/global.config" "${i}"/ /usr/local/thscripts/"${i}"/
+  rsync -aq --delete --exclude "/usr/local/thscripts/etc/global.conf" "${i}"/ /usr/local/thscripts/"${i}"/
 done
 
 dir_list_full="$dir_list .venv"
