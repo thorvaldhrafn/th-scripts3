@@ -32,6 +32,7 @@ for i in $CHECK_URL; do
   date=$(date '+%F-%H:%M')
   while true; do
     return_code=$(code_check "$url_f_check")
+    echo $return_code
     if [ "${return_code}" -eq 5 ]; then
       /bin/systemctl stop "${url_backnd}"-fpm.service &>/dev/null
       sleep 10
