@@ -8,7 +8,7 @@ THS_PATH="/usr/local/thscripts"
 . ${THS_PATH}/etc/functions.sh
 
 code_check() {
- if http_code=$(curl -s -o /dev/null -I -w "%{http_code}" --connect-timeout 40 "${1}"; true); then
+ if http_code=$(curl -s -o /dev/null -I -w "%{http_code}" --connect-timeout 40 "${1}" | cut -c -1; false); then
    echo "$http_code"
  else
    echo 000
