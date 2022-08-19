@@ -2,20 +2,21 @@ import psutil
 import re
 
 
-def p_mem_rss_full(pname, p_mem_rss):
+def p_mem_rss_full(pname, prc_mem_rss):
     global proc_mem_list
     try:
         p_mem_rss_old = proc_mem_list[pname]['rss']
-        p_mem_rss_new = p_mem_rss_old + p_mem_rss
+        p_mem_rss_new = p_mem_rss_old + prc_mem_rss
         proc_mem_list[pname]['rss'] = p_mem_rss_new
     except KeyError:
-        rss_dict = dict(rss=p_mem_rss)
+        rss_dict = dict(rss=prc_mem_rss)
         try:
             p_dict = proc_mem_list[pname]
             p_dict = {**p_dict, **rss_dict}
             proc_mem_list[pname] = p_dict
         except KeyError:
             proc_mem_list[pname] = rss_dict
+
 
 proc_mem_list = {}
 

@@ -2,7 +2,7 @@
 
 __nginx_conf_paths() {
   chck_path="$1"
-  includes=$(cat "${chck_path}" | grep -E "(\s*|\t*)include.*" | awk '{ print $2 }' | sed -r 's/;$//')
+  includes=$(grep -E "(\s*|\t*)include.*" "${chck_path}" | awk '{ print $2 }' | sed -r 's/;$//')
   for i in ${includes}; do
     dname=$(dirname "${i}" | head -n1)
     if [[ "${dname}" = "." ]]; then
@@ -15,8 +15,7 @@ __nginx_conf_paths() {
       CONF_LIST="$CONF_LIST $confs"
       fname=$(basename "${i}")
       full_fname="${dname}/$fname"
-      cat "${full_fname}" | grep -E "(\s*|\t*)include.*" >/dev/null
-      if [[ $? -eq 0 ]]; then
+      if grep -E "(\s*|\t*)include.*" "${full_fname}"; then
         __nginx_conf_paths "${full_fname}"
       fi
     else
@@ -24,9 +23,9 @@ __nginx_conf_paths() {
         CONF_LIST="${CONF_LIST} ${confs}"
         fname=$(basename "${j}")
         full_fname="${dname}/$fname"
-        if [[ $? -eq 0 ]]; then
-          __nginx_conf_paths "${full_fname}"
-        fi
+#        if [[ $? -eq 0 ]]; then
+        __nginx_conf_paths "${full_fname}"
+#        fi
       done
     fi
   done
@@ -39,8 +38,7 @@ nginx_conf_paths() {
 
 vesta_usr_list() {
   for USER in $(VESTA=/usr/local/vesta /usr/local/vesta/bin/v-list-users plain | awk '{ print $1 }' | xargs); do
-    grep "${USER}" /etc/passwd &>/dev/null
-    if [[ $? -eq 0 ]]; then
+    if grep "${USER}" /etc/passwd; then
       vst_users="${vst_users} ${USER}"
     fi
   done
