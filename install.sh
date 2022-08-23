@@ -53,7 +53,7 @@ systemctl daemon-reload
 
 if [[ $install_param == "install" || $update_param == "venv_update" ]]; then
   chown -R thscripts:thscripts /usr/local/thscripts/
-  VIRT_ENV="/usr/local/thscripts/.venv/"; sed -i "s|VIRT_ENV|${VIRT_ENV}|g" /usr/lib/systemd/system/th-api.service
+  VIRT_ENV="/usr/local/thscripts/.venv/"; sed -i "s|VIRT_ENV|${VIRT_ENV}|g" /etc/systemd/system/th-api.service
   sed -i "s|SYS_PATH|${PATH}|g" /etc/systemd/system/th-api.service
 
   cp etc/th-api.conf /usr/local/thscripts/etc/
