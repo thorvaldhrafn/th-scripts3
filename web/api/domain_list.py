@@ -78,7 +78,7 @@ def check_vhost(host_list, param):
     wrong_domains = dict()
     ip_list = serv_ip_list()
     google_resolver = dns.resolver.Resolver()
-    google_resolver.nameservers = ['8.8.8.8']
+    google_resolver.nameservers = ['8.8.8.8', '1.1.1.1']
     for vhost in host_list:
         try:
             for rdata in google_resolver.resolve(vhost, "A"):
