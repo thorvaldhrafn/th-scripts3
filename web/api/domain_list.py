@@ -1,8 +1,9 @@
 import re
 import os
 import fnmatch
-import subprocess
 import dns.resolver
+import socket
+import psutil
 
 
 def nginx_inc_grep(chk_conf, dname="", list_confs=None):
@@ -64,10 +65,12 @@ def vhost_list(nginxconf_path):
 
 
 def serv_ip_list():
-    output = subprocess.Popen("hostname --all-ip-addresses", shell=True, stdout=subprocess.PIPE)
-    ips = output.communicate()[0].decode('utf-8')
-    ips = str(ips).strip()
-    ips_list = ips.split(" ")
+    ips_list = list()
+    ip_proto = socket.AF_INET
+    for if_name, snic_addrs in psutil.net_if_addrs().items():
+        for snic_addr in snic_addrs:
+            if snic_addr.family == ip_proto:
+                ips_list.append(snic_addr.address)
     return ips_list
 
 
