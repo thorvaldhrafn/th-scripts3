@@ -4,6 +4,7 @@ import fnmatch
 import dns.resolver
 import socket
 import psutil
+import glob
 
 
 def nginx_inc_grep(chk_conf, dname="", list_confs=None):
@@ -11,26 +12,28 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
         list_confs = list()
     tmp_file_list = list()
     chk_conf_list = list()
+    if not os.path.isabs(chk_conf):
+        chk_conf = dname + "/" + chk_conf
     if os.path.isfile(chk_conf):
         chk_conf_list.append(chk_conf)
-    elif os.path.isdir(chk_conf):
-        folder = os.path.dirname(chk_conf) + "/"
-        folder_list = list()
-        for i in os.walk(folder):
-            folder_list.append(i)
-        for j in folder_list[0][2]:
-            chk_conf_list.append(folder + j)
-    elif os.path.isdir(os.path.dirname(chk_conf)):
-        folder = os.path.dirname(chk_conf) + "/"
-        folder_list = list()
-        pattrn = os.path.basename(chk_conf)
-        for i in os.walk(folder):
-            folder_list.append(i)
-        if len(folder_list) > 0:
-            for j in fnmatch.filter(folder_list[0][2], pattrn):
-                chk_conf_list.append(folder + j)
     else:
-        chk_conf_list.append(dname + "/" + chk_conf)
+        chk_conf_list = chk_conf_list + glob.glob(chk_conf)
+    # elif os.path.isdir(chk_conf):
+    #     folder = os.path.dirname(chk_conf) + "/"
+    #     folder_list = list()
+    #     for i in os.walk(folder):
+    #         folder_list.append(i)
+    #     for j in folder_list[0][2]:
+    #         chk_conf_list.append(folder + j)
+    # elif os.path.isdir(os.path.dirname(chk_conf)):
+    #     folder = os.path.dirname(chk_conf) + "/"
+    #     folder_list = list()
+    #     pattrn = os.path.basename(chk_conf)
+    #     for i in os.walk(folder):
+    #         folder_list.append(i)
+    #     if len(folder_list) > 0:
+    #         for j in fnmatch.filter(folder_list[0][2], pattrn):
+    #             chk_conf_list.append(folder + j)
     for cfile in chk_conf_list:
         if not list_confs.count(cfile):
             if os.path.islink(cfile):
