@@ -17,6 +17,8 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
     if os.path.isfile(chk_conf):
         chk_conf_list.append(chk_conf)
     else:
+        print(chk_conf)
+        print(glob.glob(chk_conf))
         chk_conf_list = chk_conf_list + glob.glob(chk_conf)
     # elif os.path.isdir(chk_conf):
     #     folder = os.path.dirname(chk_conf) + "/"
@@ -39,7 +41,6 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
             if os.path.islink(cfile):
                 cfile = os.readlink(cfile)
             list_confs.append(cfile)
-            print(cfile)
             with open(cfile, 'r') as ngnx_file:
                 for line in ngnx_file:
                     if re.match('(\\s*|\t*)include.*', line):
