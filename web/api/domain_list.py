@@ -17,10 +17,7 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
     if os.path.isfile(chk_conf):
         chk_conf_list.append(chk_conf)
     else:
-        print(chk_conf)
-        print(glob.glob(chk_conf))
         chk_conf_list = chk_conf_list + glob.glob(chk_conf)
-        print(chk_conf_list)
     # elif os.path.isdir(chk_conf):
     #     folder = os.path.dirname(chk_conf) + "/"
     #     folder_list = list()
@@ -38,6 +35,8 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
     #         for j in fnmatch.filter(folder_list[0][2], pattrn):
     #             chk_conf_list.append(folder + j)
     for cfile in chk_conf_list:
+        print(chk_conf)
+        print(cfile)
         if not list_confs.count(cfile):
             if os.path.islink(cfile):
                 cfile = os.readlink(cfile)
