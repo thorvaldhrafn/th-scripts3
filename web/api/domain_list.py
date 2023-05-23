@@ -39,14 +39,13 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
             if os.path.islink(cfile):
                 cfile = os.readlink(cfile)
             list_confs.append(cfile)
+            print(cfile)
             with open(cfile, 'r') as ngnx_file:
                 for line in ngnx_file:
                     if re.match('(\\s*|\t*)include.*', line):
                         file_mask = re.sub('(\\s*|\t*)include(\\s+|\t+)', '', line, count=1)
                         file_mask = re.sub(';\n', '', file_mask, count=1)
                         tmp_file_list.append(file_mask)
-                        print(line)
-                        print(tmp_file_list)
                         for f in tmp_file_list:
                             nginx_inc_grep(f, "/etc/nginx", list_confs)
     return list_confs
