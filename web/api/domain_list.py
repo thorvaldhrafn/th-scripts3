@@ -20,6 +20,7 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
         print(chk_conf)
         print(glob.glob(chk_conf))
         chk_conf_list = chk_conf_list + glob.glob(chk_conf)
+        print(chk_conf_list)
     # elif os.path.isdir(chk_conf):
     #     folder = os.path.dirname(chk_conf) + "/"
     #     folder_list = list()
