@@ -36,8 +36,8 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
     #             chk_conf_list.append(folder + j)
     for cfile in chk_conf_list:
         print(chk_conf)
-        print(cfile)
         if not list_confs.count(cfile):
+            print(cfile)
             if os.path.islink(cfile):
                 cfile = os.readlink(cfile)
             list_confs.append(cfile)
