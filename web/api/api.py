@@ -32,7 +32,7 @@ class RestHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({'data': result_list(type_acc)}).encode("utf-8"))
             if k == "check":
                 output = subprocess.Popen("echo $PATH", shell=True, stdout=subprocess.PIPE)
-                ips = output.communicate()[0].rstrip()
+                ips = output.communicate()[0].rstrip().decode()
                 print(ips)
                 self.wfile.write(json.dumps({'data': ips}).encode("utf-8"))
             else:
