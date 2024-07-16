@@ -33,7 +33,8 @@ class RestHTTPRequestHandler(BaseHTTPRequestHandler):
             if k == "check":
                 output = subprocess.Popen("echo $PATH", shell=True, stdout=subprocess.PIPE)
                 ips = output.communicate()[0].rstrip()
-                self.wfile.write(json.dumps({'data': ips}).encode("utf-8"))
+            else:
+                self.wfile.write(json.dumps({'data': "Wrong request"}).encode("utf-8"))
         return
 
 
