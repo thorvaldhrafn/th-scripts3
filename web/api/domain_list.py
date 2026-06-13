@@ -7,7 +7,8 @@ import dns.exception
 import psutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-def nginx_inc_grep(chk_conf, dname="", list_confs=None):
+
+def nginx_inc_grep(chk_conf, dname="/etc/nginx", list_confs=None):
     if list_confs is None:
         list_confs = set()
 
@@ -29,12 +30,13 @@ def nginx_inc_grep(chk_conf, dname="", list_confs=None):
         if cfile not in list_confs:
             list_confs.add(cfile)
             current_dir = os.path.dirname(cfile)
+
             try:
                 with open(cfile, 'r', errors='ignore') as ngnx_file:
                     for line in ngnx_file:
                         line = line.strip()
                         if line.startswith('include ') or line.startswith('include\t'):
-                            file_mask = re.sub(r'^include\s+', '', line).strip()
+                            file_mask = re.sub(r'^include\s+', '', line).rstrip(';').strip()
                             nginx_inc_grep(file_mask, current_dir, list_confs)
             except IOError:
                 continue
@@ -52,9 +54,7 @@ def vhost_list(nginxconf_path):
                 for line in fconf_file:
                     line = line.strip()
                     if line.startswith('server_name ') or line.startswith('server_name\t'):
-                        host_string = re.sub(r'^server_name\s+', '', line)
-                        host_string = host_string.rstrip(';').strip()
-
+                        host_string = re.sub(r'^server_name\s+', '', line).rstrip(';').strip()
                         hosts = [h for h in host_string.split() if h]
                         host_set.update(hosts)
         except IOError:
@@ -65,10 +65,9 @@ def vhost_list(nginxconf_path):
 
 def serv_ip_list():
     ips_set = set()
-    ip_proto = socket.AF_INET
     for _, snic_addrs in psutil.net_if_addrs().items():
         for snic_addr in snic_addrs:
-            if snic_addr.family == ip_proto:
+            if snic_addr.family == socket.AF_INET:
                 ips_set.add(snic_addr.address)
     return ips_set
 
