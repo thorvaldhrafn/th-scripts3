@@ -12,6 +12,7 @@ def nginx_inc_grep(chk_conf, dname="/etc/nginx", list_confs=None):
     if list_confs is None:
         list_confs = set()
 
+    # Clean up absolute vs relative path logic
     if not os.path.isabs(chk_conf):
         chk_conf = os.path.join(dname, chk_conf)
 
@@ -22,10 +23,12 @@ def nginx_inc_grep(chk_conf, dname="/etc/nginx", list_confs=None):
         chk_conf_list.extend(glob.glob(chk_conf))
 
     for cfile in chk_conf_list:
+        # Normalize symlinks completely
         if os.path.islink(cfile):
-            cfile = os.readlink(cfile)
-            if not os.path.isabs(cfile):
-                cfile = os.path.join(dname, cfile)
+            real_path = os.readlink(cfile)
+            cfile = real_path if os.path.isabs(real_path) else os.path.join(os.path.dirname(cfile), real_path)
+
+        cfile = os.path.abspath(cfile)
 
         if cfile not in list_confs:
             list_confs.add(cfile)
@@ -35,8 +38,11 @@ def nginx_inc_grep(chk_conf, dname="/etc/nginx", list_confs=None):
                 with open(cfile, 'r', errors='ignore') as ngnx_file:
                     for line in ngnx_file:
                         line = line.strip()
+                        # Match 'include' keywords accurately
                         if line.startswith('include ') or line.startswith('include\t'):
                             file_mask = re.sub(r'^include\s+', '', line).rstrip(';').strip()
+                            # Clean up inline quotes if they exist in config files
+                            file_mask = file_mask.strip('"').strip("'")
                             nginx_inc_grep(file_mask, current_dir, list_confs)
             except IOError:
                 continue
@@ -46,7 +52,15 @@ def nginx_inc_grep(chk_conf, dname="/etc/nginx", list_confs=None):
 
 def vhost_list(nginxconf_path):
     host_set = set()
-    conf_files = nginx_inc_grep(nginxconf_path, os.path.dirname(nginxconf_path))
+    # Normalize our base configuration entry point
+    nginxconf_path = os.path.abspath(nginxconf_path)
+    base_dir = os.path.dirname(nginxconf_path)
+
+    conf_files = nginx_inc_grep(nginxconf_path, base_dir)
+
+    # FIX: Clean syntax check for the entry-point file
+    if nginxconf_path not in conf_files and os.path.isfile(nginxconf_path):
+        conf_files.append(nginxconf_path)
 
     for fconf in conf_files:
         try:
@@ -55,8 +69,12 @@ def vhost_list(nginxconf_path):
                     line = line.strip()
                     if line.startswith('server_name ') or line.startswith('server_name\t'):
                         host_string = re.sub(r'^server_name\s+', '', line).rstrip(';').strip()
-                        hosts = [h for h in host_string.split() if h]
-                        host_set.update(hosts)
+                        # Clean up spaces, multi-spaces, and split
+                        hosts = [h.strip() for h in host_string.split() if h.strip()]
+                        for host in hosts:
+                            host = host.rstrip(';')
+                            if host:
+                                host_set.add(host)
         except IOError:
             continue
 
@@ -73,15 +91,9 @@ def serv_ip_list():
 
 
 def _worker_check_dns(vhost, ip_list, host_set):
-    """
-    Worker function executed by individual threads.
-    Processes a single vhost and returns its classification data.
-    """
-    # Skip catch-all blocks or wildcards early to save network time
-    if vhost.startswith('_') or vhost.startswith('*') or not vhost:
+    if not vhost or vhost.startswith('_') or vhost.startswith('*') or vhost == 'localhost':
         return None
 
-    # Thread-local resolver initialization
     resolver = dns.resolver.Resolver()
     resolver.nameservers = ['8.8.8.8', '1.1.1.1']
     resolver.timeout = 2.0
@@ -95,7 +107,7 @@ def _worker_check_dns(vhost, ip_list, host_set):
     }
 
     try:
-        # 1. Try resolving A Record
+        # Try resolving an A record map
         a_records = resolver.resolve(vhost, "A")
         for rdata in a_records:
             host_ip = str(rdata)
@@ -103,10 +115,10 @@ def _worker_check_dns(vhost, ip_list, host_set):
                 result["domains"][vhost] = host_ip
             else:
                 result["wrong_domains"][vhost] = host_ip
-            break  # Evaluating the primary mapped IP is generally enough
+            break
 
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-        # 2. Try resolving CNAME Record if A record is absent
+        # Fall back to checking CNAME profiles if no base A records map
         try:
             cname_records = resolver.resolve(vhost, "CNAME")
             for rdata in cname_records:
@@ -133,7 +145,7 @@ def check_vhost(host_list, param, max_workers=20):
     ip_list = serv_ip_list()
     host_set = set(host_list)
 
-    # Run DNS lookups in parallel using a ThreadPool
+    # Process concurrent pool evaluations
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(_worker_check_dns, vhost, ip_list, host_set): vhost for vhost in host_list}
 
@@ -142,7 +154,6 @@ def check_vhost(host_list, param, max_workers=20):
             if not res:
                 continue
 
-            # Safely merge thread results back into main collections
             domains.update(res["domains"])
             wrong_domains.update(res["wrong_domains"])
             wrong_aliases.extend(res["wrong_aliases"])
@@ -167,4 +178,7 @@ def result_list(type_list="all", conf_path="/etc/nginx/nginx.conf"):
         return "Nginx not installed or config path invalid"
 
     host_list = vhost_list(conf_path)
+    if not host_list:
+        return "No vhosts discovered inside configuration tree."
+
     return check_vhost(host_list, type_list)
