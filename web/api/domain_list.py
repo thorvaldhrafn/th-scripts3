@@ -8,56 +8,69 @@ import glob
 
 def nginx_inc_grep(chk_conf, dname="", list_confs=None):
     if list_confs is None:
-        list_confs = list()
-    tmp_file_list = list()
-    chk_conf_list = list()
+        list_confs = set()
+
     if not os.path.isabs(chk_conf):
-        chk_conf = dname + "/" + chk_conf
+        chk_conf = os.path.join(dname, chk_conf)
+
+    chk_conf_list = []
     if os.path.isfile(chk_conf):
         chk_conf_list.append(chk_conf)
     else:
-        chk_conf_list = chk_conf_list + glob.glob(chk_conf)
+        chk_conf_list.extend(glob.glob(chk_conf))
+
     for cfile in chk_conf_list:
-        if not list_confs.count(cfile):
-            if os.path.islink(cfile):
-                cfile = os.readlink(cfile)
-            list_confs.append(cfile)
-            with open(cfile, 'r') as ngnx_file:
-                for line in ngnx_file:
-                    if re.match('(\\s*|\t*)include.*', line):
-                        file_mask = re.sub('(\\s*|\t*)include(\\s+|\t+)', '', line, count=1)
-                        file_mask = re.sub(';\n', '', file_mask, count=1)
-                        tmp_file_list.append(file_mask)
-                        for f in tmp_file_list:
-                            nginx_inc_grep(f, "/etc/nginx", list_confs)
-    return list_confs
+        if os.path.islink(cfile):
+            cfile = os.readlink(cfile)
+            if not os.path.isabs(cfile):
+                cfile = os.path.join(dname, cfile)
+
+        if cfile not in list_confs:
+            list_confs.add(cfile)
+            current_dir = os.path.dirname(cfile)
+            try:
+                with open(cfile, 'r', errors='ignore') as ngnx_file:
+                    for line in ngnx_file:
+                        line = line.strip()
+                        if line.startswith('include ') or line.startswith('include\t'):
+                            file_mask = re.sub(r'^include\s+', '', line)
+                            file_mask = file_mask.rstrip(';').strip()
+                            nginx_inc_grep(file_mask, current_dir, list_confs)
+            except IOError:
+                continue
+
+    return list(list_confs)
 
 
 def vhost_list(nginxconf_path):
-    host_list = list()
-    for fconf in nginx_inc_grep(nginxconf_path):
-        tmp_host_list = list()
-        with open(fconf, 'r') as fconf_file:
-            for line in fconf_file:
-                if re.match('(\\s*|\t*)server_name(\\s+|\t+)', line):
-                    host_string = re.sub('(\\s*|\t*)server_name(\\s+|\t+)', '', line, count=1)
-                    host_string = re.sub(';\n', '', host_string, count=1)
-                    tmp_host_list.append(host_string)
-                    for i in tmp_host_list:
-                        host_list = host_list + i.split(" ")
-    host_list = list(set(host_list))
-    host_list = [_f for _f in host_list if _f]
-    return host_list
+    host_set = set()
+    conf_files = nginx_inc_grep(nginxconf_path, os.path.dirname(nginxconf_path))
+
+    for fconf in conf_files:
+        try:
+            with open(fconf, 'r', errors='ignore') as fconf_file:
+                for line in fconf_file:
+                    line = line.strip()
+                    if line.startswith('server_name ') or line.startswith('server_name\t'):
+                        host_string = re.sub(r'^server_name\s+', '', line)
+                        host_string = host_string.rstrip(';').strip()
+
+                        hosts = [h for h in host_string.split() if h]
+                        host_set.update(hosts)
+        except IOError:
+            continue
+
+    return list(host_set)
 
 
 def serv_ip_list():
-    ips_list = list()
+    ips_set = set()
     ip_proto = socket.AF_INET
-    for if_name, snic_addrs in psutil.net_if_addrs().items():
+    for _, snic_addrs in psutil.net_if_addrs().items():
         for snic_addr in snic_addrs:
             if snic_addr.family == ip_proto:
-                ips_list.append(snic_addr.address)
-    return ips_list
+                ips_set.add(snic_addr.address)
+    return ips_set
 
 
 def check_vhost(host_list, param):
@@ -65,56 +78,55 @@ def check_vhost(host_list, param):
     wrong_aliases = list()
     domains = dict()
     wrong_domains = dict()
+
     ip_list = serv_ip_list()
-    google_resolver = dns.resolver.Resolver()
-    google_resolver.nameservers = ['8.8.8.8', '1.1.1.1']
+    host_set = set(host_list)
+
+    resolver = dns.resolver.Resolver()
+    resolver.nameservers = ['8.8.8.8', '1.1.1.1']
+    resolver.timeout = 2.0
+    resolver.lifetime = 2.0
+
     for vhost in host_list:
+        if vhost.startswith('_') or vhost.startswith('*'):
+            continue
+
         try:
-            for rdata in google_resolver.resolve(vhost, "A"):
+            a_records = resolver.resolve(vhost, "A")
+            for rdata in a_records:
                 host_ip = str(rdata)
                 if host_ip in ip_list:
                     domains[vhost] = host_ip
                 else:
                     wrong_domains[vhost] = host_ip
-        except dns.resolver.NXDOMAIN:
-            pass
-        except dns.resolver.Timeout:
-            pass
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+            try:
+                cname_records = resolver.resolve(vhost, "CNAME")
+                for rdata in cname_records:
+                    hname = str(rdata).strip('.')
+                    if hname in host_set:
+                        aliases.setdefault(hname, []).append(vhost)
+                    else:
+                        wrong_aliases.append(vhost)
+                    break
+            except dns.exception.DNSException:
+                pass
         except dns.exception.DNSException:
             pass
-    for vhost in list(domains.keys()):
-        try:
-            for rdata in google_resolver.resolve(vhost, "CNAME"):
-                hname = str(rdata).strip('.')
-                if host_list.count(hname):
-                    if list(aliases.keys()).count(hname):
-                        tmp_lst = aliases.get(hname)
-                        tmp_lst.append(vhost)
-                    else:
-                        tmp_lst = list()
-                        tmp_lst.append(vhost)
-                    aliases[hname] = tmp_lst
-                else:
-                    wrong_aliases.append(vhost)
-            domains.pop(vhost, None)
-        except dns.resolver.NoAnswer:
-            pass
-    if param == "all":
-        full_data = dict(domains=domains, wrong_aliases=wrong_aliases, aliases=aliases, wrong_domains=wrong_domains)
-        return full_data
-    elif param == "domains":
-        return domains
-    elif param == "wrong_aliases":
-        return wrong_aliases
-    elif param == "aliases":
-        return aliases
-    elif param == "wrong_domains":
-        return wrong_domains
+    full_data = {
+        "domains": domains,
+        "wrong_aliases": wrong_aliases,
+        "aliases": aliases,
+        "wrong_domains": wrong_domains
+    }
 
+    if param == "all":
+        return full_data
+    return full_data.get(param, None)
 
 def result_list(type_list="all", conf_path="/etc/nginx/nginx.conf"):
+    if not os.path.exists(conf_path):
+        return "Nginx not installed or config path invalid"
+
     host_list = vhost_list(conf_path)
-    if os.path.exists(conf_path):
-        return check_vhost(host_list, type_list)
-    else:
-        return "Nginx not installed"
+    return check_vhost(host_list, type_list)
